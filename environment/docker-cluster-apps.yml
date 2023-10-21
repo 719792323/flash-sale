@@ -1,11 +1,15 @@
 version: '3.2'
 
+# 创建一个共享网络
 networks:
   thoughts-beta-cluster-apps:
     driver: overlay
 
+# 创建一个挂载点
 volumes:
   prometheus_data: {}
+
+# 定义服务
 services:
   flash-sale-app:
     image: flash-sale-app

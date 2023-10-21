@@ -22,31 +22,31 @@
     </appender>
     <conversionRule conversionWord="ip" converterClass="com.actionworks.flashsale.util.IPConverterConfig" />
 
-    <appender name="LOG_STASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>30.203.118.10:5044</destination>
-        <queueSize>1048576</queueSize>
-        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-            <providers>
-                <timestamp>
-                    <timeZone>UTC</timeZone>
-                </timestamp>
-                <pattern>
-                    <pattern>
-                        {
-                        "app_date": "%d{yyyy-MM-dd HH:mm:ss:SSS}",
-                        "app_ip": "%ip",
-                        "app_thread": "%thread",
-                        "app_traceId": "%X{traceId}",
-                        "app_level": "%level",
-                        "app_logger": "%logger{40}",
-                        "app_message": "%msg%n"
-                        }
-                    </pattern>
-                </pattern>
-            </providers>
+<!--    <appender name="LOG_STASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
+<!--        <destination>30.203.118.10:5044</destination>-->
+<!--        <queueSize>1048576</queueSize>-->
+<!--        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">-->
+<!--            <providers>-->
+<!--                <timestamp>-->
+<!--                    <timeZone>UTC</timeZone>-->
+<!--                </timestamp>-->
+<!--                <pattern>-->
+<!--                    <pattern>-->
+<!--                        {-->
+<!--                        "app_date": "%d{yyyy-MM-dd HH:mm:ss:SSS}",-->
+<!--                        "app_ip": "%ip",-->
+<!--                        "app_thread": "%thread",-->
+<!--                        "app_traceId": "%X{traceId}",-->
+<!--                        "app_level": "%level",-->
+<!--                        "app_logger": "%logger{40}",-->
+<!--                        "app_message": "%msg%n"-->
+<!--                        }-->
+<!--                    </pattern>-->
+<!--                </pattern>-->
+<!--            </providers>-->
 
-        </encoder>
-    </appender>
+<!--        </encoder>-->
+<!--    </appender>-->
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -56,7 +56,7 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="LOG_STASH"/>
+<!--        <appender-ref ref="LOG_STASH"/>-->
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="APPLICATION"/>
     </root>

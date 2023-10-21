@@ -1,4 +1,5 @@
 version: '3.2'
+# 这个版本没启动监控
 
 networks:
   thoughts-beta-network:
@@ -27,7 +28,6 @@ services:
     - 3306:3306
     networks:
     - thoughts-beta-network
-
   redis:
     container_name: redis
     image: redislabs/redismod:latest
@@ -74,7 +74,6 @@ services:
     - JAVA_HOME=/usr/lib/jvm/jre
     networks:
     - thoughts-beta-network
-
   elasticsearch:
     image: elasticsearch:7.14.2
     container_name: elasticsearch
@@ -88,7 +87,6 @@ services:
       discovery.type: single-node
     networks:
     - thoughts-beta-network
-
   logstash:
     image: logstash:7.14.2
     container_name: logstash
@@ -106,7 +104,6 @@ services:
     - thoughts-beta-network
     depends_on:
     - elasticsearch
-
   kibana:
     image: kibana:7.14.2
     container_name: kibana
@@ -118,7 +115,6 @@ services:
     - thoughts-beta-network
     depends_on:
     - elasticsearch
-    
   nacos:
     image: nacos/nacos-server:2.0.3
     container_name: nacos-standalone-mysql
