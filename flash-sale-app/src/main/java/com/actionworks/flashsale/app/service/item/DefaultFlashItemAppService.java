@@ -69,22 +69,28 @@ public class DefaultFlashItemAppService implements FlashItemAppService {
     @Resource
     private DistributedLockFactoryService lockFactoryService;
 
+    //发布秒杀品
     @Override
     public AppResult publishFlashItem(Long userId, Long activityId, FlashItemPublishCommand itemPublishCommand) {
         logger.info("itemPublish|发布秒杀品|{},{},{}", userId, activityId, JSON.toJSON(itemPublishCommand));
+        //基本参数检测
         if (userId == null || activityId == null || itemPublishCommand == null || !itemPublishCommand.validate()) {
             throw new BizException(INVALID_PARAMS);
         }
+        //身份权限认证
         AuthResult authResult = authorizationService.auth(userId, FLASH_ITEM_CREATE);
         if (!authResult.isSuccess()) {
             throw new AuthException(UNAUTHORIZED_ACCESS);
         }
+        //创建分布式锁对象
         DistributedLock itemCreateLock = lockFactoryService.getDistributedLock(getItemCreateLockKey(userId));
         try {
+            //加锁
             boolean isLockSuccess = itemCreateLock.tryLock(500, 1000, TimeUnit.MILLISECONDS);
             if (!isLockSuccess) {
                 throw new BizException(FREQUENTLY_ERROR);
             }
+            //获得秒杀活动
             FlashActivity flashActivity = flashActivityDomainService.getFlashActivity(activityId);
             if (flashActivity == null) {
                 throw new BizException(ACTIVITY_NOT_FOUND);
@@ -92,6 +98,7 @@ public class DefaultFlashItemAppService implements FlashItemAppService {
             FlashItem flashItem = toDomain(itemPublishCommand);
             flashItem.setActivityId(activityId);
             flashItem.setStockWarmUp(0);
+            //发布商品
             flashItemDomainService.publishFlashItem(flashItem);
             logger.info("itemPublish|秒杀品已发布");
             return AppResult.buildSuccess();
@@ -99,10 +106,12 @@ public class DefaultFlashItemAppService implements FlashItemAppService {
             logger.error("itemPublish|秒杀品发布失败|{}", userId, e);
             throw new BizException("秒杀品发布失败");
         } finally {
+            //解锁
             itemCreateLock.unlock();
         }
     }
 
+    //上线秒杀品
     @Override
     public AppResult onlineFlashItem(Long userId, Long activityId, Long itemId) {
         logger.info("itemOnline|上线秒杀品|{},{},{}", userId, activityId, itemId);
@@ -119,6 +128,7 @@ public class DefaultFlashItemAppService implements FlashItemAppService {
             if (!isLockSuccess) {
                 throw new BizException(LOCK_FAILED_ERROR);
             }
+            //修改商品上线状态
             flashItemDomainService.onlineFlashItem(itemId);
             logger.info("itemOnline|秒杀品已上线");
             return AppResult.buildSuccess();
@@ -192,13 +202,16 @@ public class DefaultFlashItemAppService implements FlashItemAppService {
     @Override
     public AppSimpleResult<FlashItemDTO> getFlashItem(Long userId, Long activityId, Long itemId, Long version) {
         logger.info("itemGet|读取秒杀品|{},{},{},{}", userId, activityId, itemId, version);
+        //从缓存中获取
         FlashItemCache flashItemCache = flashItemCacheService.getCachedItem(itemId, version);
-        if (flashItemCache.isLater()) {
+        if (flashItemCache.isLater()) {//返回延迟缓存处理结果
             return AppSimpleResult.tryLater();
         }
+        //缓存不存在
         if (!flashItemCache.isExist() || flashItemCache.getFlashItem() == null) {
             throw new BizException(ITEM_NOT_FOUND.getErrDesc());
         }
+        //？
         updateLatestItemStock(userId, flashItemCache.getFlashItem());
         FlashItemDTO flashItemDTO = FlashItemAppBuilder.toFlashItemDTO(flashItemCache.getFlashItem());
         flashItemDTO.setVersion(flashItemCache.getVersion());

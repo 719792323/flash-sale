@@ -35,6 +35,7 @@ public class FlashItemController {
     @Resource
     private FlashItemAppService flashItemAppService;
 
+    //发布秒杀品
     @PostMapping(value = "/activities/{activityId}/flash-items")
     public Response publishFlashItem(@RequestAttribute Long userId, @PathVariable Long activityId, @RequestBody FlashItemPublishRequest flashItemPublishRequest) {
         AppResult publishResult = flashItemAppService.publishFlashItem(userId, activityId, toCommand(flashItemPublishRequest));

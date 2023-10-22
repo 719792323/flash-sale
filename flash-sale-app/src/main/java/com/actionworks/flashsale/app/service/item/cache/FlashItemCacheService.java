@@ -25,6 +25,7 @@ import static com.actionworks.flashsale.util.StringUtil.link;
 @Service
 public class FlashItemCacheService {
     private final static Logger logger = LoggerFactory.getLogger(FlashItemCacheService.class);
+    //google Guava Cache
     private final static Cache<Long, FlashItemCache> flashItemLocalCache = CacheBuilder.newBuilder().initialCapacity(10).concurrencyLevel(5).expireAfterWrite(10, TimeUnit.SECONDS).build();
     private static final String UPDATE_ITEM_CACHE_LOCK_KEY = "UPDATE_ITEM_CACHE_LOCK_KEY_";
     private final Lock localCacleUpdatelock = new ReentrantLock();
@@ -40,7 +41,7 @@ public class FlashItemCacheService {
 
     public FlashItemCache getCachedItem(Long itemId, Long version) {
         FlashItemCache flashItemCache = flashItemLocalCache.getIfPresent(itemId);
-        if (flashItemCache != null) {
+        if (flashItemCache != null) {//本地缓存验证
             if (version == null) {
                 logger.info("itemCache|命中本地缓存|{}", itemId);
                 return flashItemCache;
@@ -56,6 +57,7 @@ public class FlashItemCacheService {
         return getLatestDistributedCache(itemId);
     }
 
+    //获取远端缓存
     private FlashItemCache getLatestDistributedCache(Long itemId) {
         logger.info("itemCache|读取远程缓存|{}", itemId);
         FlashItemCache distributedFlashItemCache = distributedCacheService.getObject(buildItemCacheKey(itemId), FlashItemCache.class);

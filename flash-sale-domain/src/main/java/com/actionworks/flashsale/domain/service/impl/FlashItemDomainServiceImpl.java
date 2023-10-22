@@ -33,16 +33,19 @@ public class FlashItemDomainServiceImpl implements FlashItemDomainService {
     @Resource
     private DomainEventPublisher domainEventPublisher;
 
+    //发布秒杀品
     @Override
     public void publishFlashItem(FlashItem flashItem) {
+        //JSON.toJSON转换对象为json字符串
         logger.info("itemPublish|发布秒杀品|{}", JSON.toJSON(flashItem));
+        //validateParamsForCreate用于参数验证，该代码写在了bean对象中
         if (flashItem == null || !flashItem.validateParamsForCreate()) {
             throw new DomainException(ONLINE_FLASH_ITEM_PARAMS_INVALID);
         }
         flashItem.setStatus(FlashItemStatus.PUBLISHED.getCode());
+        //调用dao接口存储flashItem
         flashItemRepository.save(flashItem);
         logger.info("itemPublish|秒杀品已发布|{}", flashItem.getId());
-
         FlashItemEvent flashItemEvent = new FlashItemEvent();
         flashItemEvent.setEventType(FlashItemEventType.PUBLISHED);
         flashItemEvent.setFlashItem(flashItem);
