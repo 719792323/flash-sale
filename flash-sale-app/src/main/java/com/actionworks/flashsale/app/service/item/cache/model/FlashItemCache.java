@@ -4,6 +4,9 @@ import com.actionworks.flashsale.domain.model.entity.FlashItem;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/*
+存储到本地cache的对象类
+ */
 @Data
 @Accessors(chain = true)
 public class FlashItemCache {

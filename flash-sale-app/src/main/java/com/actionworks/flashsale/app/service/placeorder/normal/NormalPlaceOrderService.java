@@ -55,38 +55,46 @@ public class NormalPlaceOrderService implements PlaceOrderService {
     @Override
     public PlaceOrderResult doPlaceOrder(Long userId, FlashPlaceOrderCommand placeOrderCommand) {
         logger.info("placeOrder|开始下单|{},{}", userId, JSON.toJSONString(placeOrderCommand));
+        //参数校验
         if (userId == null || placeOrderCommand == null || !placeOrderCommand.validateParams()) {
             throw new BizException(INVALID_PARAMS);
         }
+        //活动校验
         boolean isActivityAllowPlaceOrder = flashActivityAppService.isAllowPlaceOrderOrNot(placeOrderCommand.getActivityId());
         if (!isActivityAllowPlaceOrder) {
             logger.info("placeOrder|秒杀活动下单规则校验未通过|{},{}", userId, placeOrderCommand.getActivityId());
             return PlaceOrderResult.failed(PLACE_ORDER_FAILED);
         }
+
+        //商品检验
         boolean isItemAllowPlaceOrder = flashItemAppService.isAllowPlaceOrderOrNot(placeOrderCommand.getItemId());
         if (!isItemAllowPlaceOrder) {
             logger.info("placeOrder|秒杀品下单规则校验未通过|{},{}", userId, placeOrderCommand.getActivityId());
             return PlaceOrderResult.failed(PLACE_ORDER_FAILED);
         }
+        //获取对应秒杀品
         AppSimpleResult<FlashItemDTO> flashItemResult = flashItemAppService.getFlashItem(placeOrderCommand.getItemId());
-
         if (!flashItemResult.isSuccess() || flashItemResult.getData() == null) {
             return PlaceOrderResult.failed(ITEM_NOT_FOUND);
         }
+
         FlashItemDTO flashItem = flashItemResult.getData();
+        //生成订单ID
         Long orderId = orderNoGenerateService.generateOrderNo(new OrderNoGenerateContext());
+        //生成订单对象
         FlashOrder flashOrderToPlace = toDomain(placeOrderCommand);
         flashOrderToPlace.setItemTitle(flashItem.getItemTitle());
         flashOrderToPlace.setFlashPrice(flashItem.getFlashPrice());
         flashOrderToPlace.setUserId(userId);
         flashOrderToPlace.setId(orderId);
-
+        //生成库存扣减对象
         StockDeduction stockDeduction = new StockDeduction()
                 .setItemId(placeOrderCommand.getItemId())
                 .setQuantity(placeOrderCommand.getQuantity())
                 .setUserId(userId);
 
         boolean preDecreaseStockSuccess = false;
+        //执行扣库存逻辑
         try {
             preDecreaseStockSuccess = itemStockCacheService.decreaseItemStock(stockDeduction);
             if (!preDecreaseStockSuccess) {

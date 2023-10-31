@@ -13,9 +13,10 @@ import com.actionworks.flashsale.domain.service.FlashItemDomainService;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -27,10 +28,10 @@ import static com.actionworks.flashsale.domain.exception.DomainErrorCode.PARAMS_
 public class FlashItemDomainServiceImpl implements FlashItemDomainService {
     private static final Logger logger = LoggerFactory.getLogger(FlashItemDomainServiceImpl.class);
 
-    @Resource
+    @Autowired
     private FlashItemRepository flashItemRepository;
 
-    @Resource
+    @Autowired
     private DomainEventPublisher domainEventPublisher;
 
     //发布秒杀品
@@ -46,6 +47,7 @@ public class FlashItemDomainServiceImpl implements FlashItemDomainService {
         //调用dao接口存储flashItem
         flashItemRepository.save(flashItem);
         logger.info("itemPublish|秒杀品已发布|{}", flashItem.getId());
+        //转换为消息事件
         FlashItemEvent flashItemEvent = new FlashItemEvent();
         flashItemEvent.setEventType(FlashItemEventType.PUBLISHED);
         flashItemEvent.setFlashItem(flashItem);

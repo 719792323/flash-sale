@@ -24,6 +24,7 @@
         <module>flash-sale-domain</module>
         <module>flash-sale-infrastructure</module>
         <module>start</module>
+        <module>start-1003</module>
     </modules>
 
     <dependencyManagement>

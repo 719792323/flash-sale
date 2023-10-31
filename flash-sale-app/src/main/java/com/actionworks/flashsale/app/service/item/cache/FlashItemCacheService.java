@@ -41,7 +41,8 @@ public class FlashItemCacheService {
 
     public FlashItemCache getCachedItem(Long itemId, Long version) {
         FlashItemCache flashItemCache = flashItemLocalCache.getIfPresent(itemId);
-        if (flashItemCache != null) {//本地缓存验证
+        if (flashItemCache != null) {
+            //本地缓存命中，进行版本检查
             if (version == null) {
                 logger.info("itemCache|命中本地缓存|{}", itemId);
                 return flashItemCache;
@@ -61,10 +62,11 @@ public class FlashItemCacheService {
     private FlashItemCache getLatestDistributedCache(Long itemId) {
         logger.info("itemCache|读取远程缓存|{}", itemId);
         FlashItemCache distributedFlashItemCache = distributedCacheService.getObject(buildItemCacheKey(itemId), FlashItemCache.class);
-        if (distributedFlashItemCache == null) {
+        if (distributedFlashItemCache == null) {//远端未命中，尝试更新缓存
             distributedFlashItemCache = tryToUpdateItemCacheByLock(itemId);
         }
         if (distributedFlashItemCache != null && !distributedFlashItemCache.isLater()) {
+            //更新本地缓存
             boolean isLockSuccess = localCacleUpdatelock.tryLock();
             if (isLockSuccess) {
                 try {
@@ -80,16 +82,20 @@ public class FlashItemCacheService {
 
     public FlashItemCache tryToUpdateItemCacheByLock(Long itemId) {
         logger.info("itemCache|更新远程缓存|{}", itemId);
+        //创建远程锁对象
         DistributedLock lock = distributedLockFactoryService.getDistributedLock(UPDATE_ITEM_CACHE_LOCK_KEY + itemId);
         try {
+            //尝试加锁
             boolean isLockSuccess = lock.tryLock(1, 5, TimeUnit.SECONDS);
-            if (!isLockSuccess) {
+            if (!isLockSuccess) {//加锁失败，返回tryLater消息
                 return new FlashItemCache().tryLater();
             }
+            //二次检查
             FlashItemCache distributedFlashItemCache = distributedCacheService.getObject(buildItemCacheKey(itemId), FlashItemCache.class);
             if (distributedFlashItemCache != null) {
                 return distributedFlashItemCache;
             }
+            //从数据库中获取数据
             FlashItem flashItem = flashItemDomainService.getFlashItem(itemId);
             FlashItemCache flashItemCache;
             if (flashItem == null) {
@@ -97,6 +103,7 @@ public class FlashItemCacheService {
             } else {
                 flashItemCache = new FlashItemCache().with(flashItem).withVersion(System.currentTimeMillis());
             }
+            //更新远端缓存
             distributedCacheService.put(buildItemCacheKey(itemId), JSON.toJSONString(flashItemCache), FIVE_MINUTES);
             logger.info("itemCache|远程缓存已更新|{}", itemId);
             return flashItemCache;

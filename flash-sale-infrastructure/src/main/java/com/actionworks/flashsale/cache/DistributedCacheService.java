@@ -3,6 +3,7 @@ package com.actionworks.flashsale.cache;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+//远端缓存接口设计，避免依赖具体实现
 public interface DistributedCacheService {
     void put(String key, String value);
 
