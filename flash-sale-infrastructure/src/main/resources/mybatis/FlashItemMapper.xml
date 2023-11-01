@@ -4,7 +4,8 @@
 
 <mapper namespace="com.actionworks.flashsale.persistence.mapper.FlashItemMapper">
     <sql id="ALL_COLUMNS">
-        id,
+        id
+        ,
         item_title,
         item_sub_title,
         item_desc,
@@ -22,7 +23,8 @@
         create_time
     </sql>
 
-    <insert id="insert" parameterType="com.actionworks.flashsale.persistence.model.FlashItemDO" useGeneratedKeys="true" keyProperty="flashItemDO.id">
+    <insert id="insert" parameterType="com.actionworks.flashsale.persistence.model.FlashItemDO" useGeneratedKeys="true"
+            keyProperty="flashItemDO.id">
         INSERT INTO flash_item(
         <include refid="ALL_COLUMNS"/>
         ) VALUES (
@@ -93,7 +95,8 @@
         where id = #{id}
     </update>
 
-    <select id="getById" resultType="com.actionworks.flashsale.persistence.model.FlashItemDO" parameterType="java.lang.Long">
+    <select id="getById" resultType="com.actionworks.flashsale.persistence.model.FlashItemDO"
+            parameterType="java.lang.Long">
         SELECT *
         FROM flash_item
         WHERE id = #{itemId}
@@ -140,6 +143,7 @@
           and available_stock <![CDATA[ >= ]]>  #{quantity}
     </update>
 
+    <!--    <![CDATA[   ]]>是xml中不被转移的描述符-->
     <update id="increaseItemStock" parameterType="com.actionworks.flashsale.persistence.model.FlashItemDO">
         UPDATE flash_item
         SET modified_time   = now(),

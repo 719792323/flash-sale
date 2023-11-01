@@ -41,6 +41,7 @@ public class FlashOrderDomainServiceImpl implements FlashOrderDomainService {
         flashOrder.setStatus(FlashOrderStatus.CREATED.getCode());
         boolean saveSuccess = flashOrderRepository.save(flashOrder);
         if (saveSuccess) {
+            //发布创建成功消息
             FlashOrderEvent flashOrderEvent = new FlashOrderEvent();
             flashOrderEvent.setEventType(FlashOrderEventType.CREATED);
             domainEventPublisher.publish(flashOrderEvent);

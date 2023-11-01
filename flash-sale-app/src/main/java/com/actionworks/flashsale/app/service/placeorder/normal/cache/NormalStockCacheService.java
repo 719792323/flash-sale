@@ -100,6 +100,7 @@ public class NormalStockCacheService implements ItemStockCacheService {
                 return false;
             }
             String key1ItemStocksCacheKey = getItemStocksCacheKey(itemId);
+            //加锁的key
             String key2ItemStocksAlignKey = getItemStocksCacheAlignKey(itemId);
             List<String> keys = Lists.newArrayList(key1ItemStocksCacheKey, key2ItemStocksAlignKey);
 
@@ -138,6 +139,7 @@ public class NormalStockCacheService implements ItemStockCacheService {
             Long result = null;
             long startTime = System.currentTimeMillis();
             while ((result == null || result == IN_STOCK_ALIGNING) && (System.currentTimeMillis() - startTime) < 1500) {
+                //通过lua脚本执行扣减库存
                 result = redisCacheService.getRedisTemplate().execute(redisScript, keys, stockDeduction.getQuantity());
                 if (result == null) {
                     logger.info("decreaseItemStock|库存扣减失败|{}", key1ItemStocksCacheKey);

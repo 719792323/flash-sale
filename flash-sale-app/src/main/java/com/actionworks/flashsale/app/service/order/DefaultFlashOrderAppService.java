@@ -67,6 +67,7 @@ public class DefaultFlashOrderAppService implements FlashOrderAppService {
         if (userId == null || placeOrderCommand == null || !placeOrderCommand.validateParams()) {
             throw new BizException(INVALID_PARAMS);
         }
+        //对一个以用户ID设置的KEY加锁，避免一个用户重复下单
         String placeOrderLockKey = getPlaceOrderLockKey(userId);
         DistributedLock placeOrderLock = lockFactoryService.getDistributedLock(placeOrderLockKey);
         try {
@@ -74,11 +75,13 @@ public class DefaultFlashOrderAppService implements FlashOrderAppService {
             if (!isLockSuccess) {
                 return AppSimpleResult.failed(FREQUENTLY_ERROR.getErrCode(), FREQUENTLY_ERROR.getErrDesc());
             }
+            //安全检查
             boolean isPassRiskInspect = securityService.inspectRisksByPolicy(userId);
             if (!isPassRiskInspect) {
                 logger.info("placeOrder|综合风控检验未通过|{}", userId);
                 return AppSimpleResult.failed(PLACE_ORDER_FAILED);
             }
+            //下单
             PlaceOrderResult placeOrderResult = placeOrderService.doPlaceOrder(userId, placeOrderCommand);
             if (!placeOrderResult.isSuccess()) {
                 return AppSimpleResult.failed(placeOrderResult.getCode(), placeOrderResult.getMessage());
@@ -125,6 +128,7 @@ public class DefaultFlashOrderAppService implements FlashOrderAppService {
         if (userId == null || orderId == null) {
             throw new BizException(INVALID_PARAMS);
         }
+        //直接走数据库，查订单
         FlashOrder flashOrder = flashOrderDomainService.getOrder(userId, orderId);
         if (flashOrder == null) {
             throw new BizException(ORDER_NOT_FOUND);
@@ -138,12 +142,14 @@ public class DefaultFlashOrderAppService implements FlashOrderAppService {
                 .setItemId(flashOrder.getItemId())
                 .setQuantity(flashOrder.getQuantity())
                 .setUserId(userId);
-
+        //遵从先写数据库，再写缓存策略
+        //恢复库存数量
         boolean stockRecoverSuccess = stockDeductionDomainService.increaseItemStock(stockDeduction);
         if (!stockRecoverSuccess) {
             logger.info("cancelOrder|库存恢复失败|{}", orderId);
             throw new BizException(ORDER_CANCEL_FAILED);
         }
+        //恢复redis库存数量
         boolean stockInRedisRecoverSuccess = itemStockCacheService.increaseItemStock(stockDeduction);
         if (!stockInRedisRecoverSuccess) {
             logger.info("cancelOrder|Redis库存恢复失败|{}", orderId);

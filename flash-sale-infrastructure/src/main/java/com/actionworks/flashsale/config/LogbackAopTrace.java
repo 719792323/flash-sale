@@ -15,17 +15,17 @@ public class LogbackAopTrace {
     private static String MDC_TRACE_ID = "traceId";
 
     @Pointcut("@annotation(com.actionworks.flashsale.config.annotion.BetaTrace)")
-    public void traceMthod() {
+    public void traceMethod() {
     }
 
-    @Before("traceMthod()")
+    @Before("traceMethod()")
     public void before() {
         if (MDC.get(MDC_TRACE_ID) == null) {
             MDC.put(MDC_TRACE_ID, UUID.randomUUID().toString().replace("-", ""));
         }
     }
 
-    @AfterReturning(pointcut = "traceMthod()")
+    @AfterReturning(pointcut = "traceMethod()")
     public void afterReturning() {
         MDC.remove(MDC_TRACE_ID);
     }

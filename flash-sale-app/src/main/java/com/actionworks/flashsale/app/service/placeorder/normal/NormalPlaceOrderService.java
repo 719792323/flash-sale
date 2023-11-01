@@ -77,7 +77,6 @@ public class NormalPlaceOrderService implements PlaceOrderService {
         if (!flashItemResult.isSuccess() || flashItemResult.getData() == null) {
             return PlaceOrderResult.failed(ITEM_NOT_FOUND);
         }
-
         FlashItemDTO flashItem = flashItemResult.getData();
         //生成订单ID
         Long orderId = orderNoGenerateService.generateOrderNo(new OrderNoGenerateContext());
@@ -87,7 +86,7 @@ public class NormalPlaceOrderService implements PlaceOrderService {
         flashOrderToPlace.setFlashPrice(flashItem.getFlashPrice());
         flashOrderToPlace.setUserId(userId);
         flashOrderToPlace.setId(orderId);
-        //生成库存扣减对象
+        //生成库存数量变化对象
         StockDeduction stockDeduction = new StockDeduction()
                 .setItemId(placeOrderCommand.getItemId())
                 .setQuantity(placeOrderCommand.getQuantity())
@@ -96,21 +95,26 @@ public class NormalPlaceOrderService implements PlaceOrderService {
         boolean preDecreaseStockSuccess = false;
         //执行扣库存逻辑
         try {
+            //预扣库存，通过redis缓存完成，没有走本地缓存（最大程度降低延迟导致的不一致），通过lua脚本保证原子执行
+            //缓存预扣库存是为了减少数据库压力
             preDecreaseStockSuccess = itemStockCacheService.decreaseItemStock(stockDeduction);
             if (!preDecreaseStockSuccess) {
                 logger.info("placeOrder|库存预扣减失败|{},{}", userId, JSON.toJSONString(placeOrderCommand));
                 return PlaceOrderResult.failed(PLACE_ORDER_FAILED.getErrCode(), PLACE_ORDER_FAILED.getErrDesc());
             }
+            //数据库扣库存（保证一致性）
             boolean decreaseStockSuccess = stockDeductionDomainService.decreaseItemStock(stockDeduction);
             if (!decreaseStockSuccess) {
                 logger.info("placeOrder|库存扣减失败|{},{}", userId, JSON.toJSONString(placeOrderCommand));
                 return PlaceOrderResult.failed(PLACE_ORDER_FAILED.getErrCode(), PLACE_ORDER_FAILED.getErrDesc());
             }
+            //下单（保证一致性）
             boolean placeOrderSuccess = flashOrderDomainService.placeOrder(userId, flashOrderToPlace);
             if (!placeOrderSuccess) {
                 throw new BizException(PLACE_ORDER_FAILED.getErrDesc());
             }
         } catch (Exception e) {
+            //恢复redis库存值
             if (preDecreaseStockSuccess) {
                 boolean recoverStockSuccess = itemStockCacheService.increaseItemStock(stockDeduction);
                 if (!recoverStockSuccess) {

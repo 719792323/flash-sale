@@ -29,7 +29,9 @@ public class FlashItemWarmUpScheduler {
         logger.info("warmUpFlashItemTask|秒杀品预热调度");
         PagesQueryCondition pagesQueryCondition = new PagesQueryCondition();
         pagesQueryCondition.setStockWarmUp(0);
+        //从数据库查询库存商品
         PageResult<FlashItem> pageResult = flashItemDomainService.getFlashItems(pagesQueryCondition);
+        //预热库存到redis
         pageResult.getData().forEach(flashItem -> {
             boolean initSuccess = itemStockCacheService.alignItemStocks(flashItem.getId());
             if (!initSuccess) {
