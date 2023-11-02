@@ -29,6 +29,7 @@ public class BadRequestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse();
         if (ex instanceof UndeclaredThrowableException) {
+            logger.info("触发降级", ex);
             if (((UndeclaredThrowableException) ex).getUndeclaredThrowable() instanceof FlowException) {
                 exceptionResponse.setErrorCode(LIMIT_BLOCK.getCode());
                 exceptionResponse.setErrorMessage(LIMIT_BLOCK.getDesc());

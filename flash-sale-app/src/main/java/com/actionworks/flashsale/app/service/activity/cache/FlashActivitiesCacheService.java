@@ -29,7 +29,7 @@ public class FlashActivitiesCacheService {
     private final static Logger logger = LoggerFactory.getLogger(FlashActivitiesCacheService.class);
     private final static Cache<Integer, FlashActivitiesCache> flashActivitiesLocalCache = CacheBuilder.newBuilder().initialCapacity(10).concurrencyLevel(5).expireAfterWrite(10, TimeUnit.SECONDS).build();
     private static final String UPDATE_ACTIVITIES_CACHE_LOCK_KEY = "UPDATE_ACTIVITIES_CACHE_LOCK_KEY";
-    private final Lock localCacleUpdatelock = new ReentrantLock();
+    private final Lock localCacheUpdateLock = new ReentrantLock();
 
     @Resource
     private DistributedCacheService distributedCacheService;
@@ -67,14 +67,15 @@ public class FlashActivitiesCacheService {
         if (distributedFlashActivityCache == null) {
             distributedFlashActivityCache = tryToUpdateActivitiesCacheByLock(pageNumber);
         }
+        //更新本地缓存
         if (distributedFlashActivityCache != null && !distributedFlashActivityCache.isLater()) {
-            boolean isLockSuccess = localCacleUpdatelock.tryLock();
+            boolean isLockSuccess = localCacheUpdateLock.tryLock();
             if (isLockSuccess) {
                 try {
                     flashActivitiesLocalCache.put(pageNumber, distributedFlashActivityCache);
                     logger.info("activitiesCache|本地缓存已更新|{}", pageNumber);
                 } finally {
-                    localCacleUpdatelock.unlock();
+                    localCacheUpdateLock.unlock();
                 }
             }
         }
@@ -98,6 +99,7 @@ public class FlashActivitiesCacheService {
                 flashActivitiesCache = new FlashActivitiesCache()
                         .setTotal(flashActivityPageResult.getTotal())
                         .setFlashActivities(flashActivityPageResult.getData())
+                        //让时间作为当前版本号
                         .setVersion(System.currentTimeMillis());
             }
             distributedCacheService.put(buildActivityCacheKey(pageNumber), JSON.toJSONString(flashActivitiesCache), FIVE_MINUTES);

@@ -211,7 +211,7 @@ public class DefaultFlashItemAppService implements FlashItemAppService {
         if (!flashItemCache.isExist() || flashItemCache.getFlashItem() == null) {
             throw new BizException(ITEM_NOT_FOUND.getErrDesc());
         }
-        //？
+
         updateLatestItemStock(userId, flashItemCache.getFlashItem());
         FlashItemDTO flashItemDTO = FlashItemAppBuilder.toFlashItemDTO(flashItemCache.getFlashItem());
         flashItemDTO.setVersion(flashItemCache.getVersion());
