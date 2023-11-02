@@ -83,6 +83,7 @@ public class NormalStockCacheService implements ItemStockCacheService {
     @Resource
     private DistributedCacheService distributedCacheService;
 
+    //矫正库存缓存数据
     @Override
     public boolean alignItemStocks(Long itemId) {
         if (itemId == null) {
@@ -90,6 +91,7 @@ public class NormalStockCacheService implements ItemStockCacheService {
             return false;
         }
         try {
+            //从数据库中直接查询
             FlashItem flashItem = flashItemDomainService.getFlashItem(itemId);
             if (flashItem == null) {
                 logger.info("alignItemStocks|秒杀品不存在|{}", itemId);
