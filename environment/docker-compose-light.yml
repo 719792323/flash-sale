@@ -1,19 +1,20 @@
 version: '3.2'
 # 这个版本没启动监控
 
+
 networks:
   thoughts-beta-network:
     driver: bridge
 
 volumes:
-  prometheus_data: {}
+  prometheus_data: { }
 services:
   mysql:
     image: mysql:5.7
     container_name: mysql
     volumes:
-    - ./data/db_data:/var/lib/mysql
-    - ./config/mysql/init:/docker-entrypoint-initdb.d/
+      - ./data/db_data:/var/lib/mysql
+      - ./config/mysql/init:/docker-entrypoint-initdb.d/
     command: [
       '--character-set-server=utf8mb4',
       '--collation-server=utf8mb4_unicode_ci',
@@ -25,112 +26,132 @@ services:
       MYSQL_USER: thoughts-beta
       MYSQL_PASSWORD: thoughts-beta
     ports:
-    - 3306:3306
+      - 3306:3306
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
   redis:
     container_name: redis
     image: redislabs/redismod:latest
     ports:
-    - 6379:6379
+      - 6379:6379
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
   redis-commander:
     container_name: redis-commander
     hostname: redis-commander
     image: rediscommander/redis-commander:latest
     environment:
-    - REDIS_HOSTS=local:redis:6379
+      - REDIS_HOSTS=local:redis:6379
     ports:
-    - 8082:8081
+      - 8082:8081
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
   rmqnamesrv:
     image: apacherocketmq/rocketmq:4.5.0
     container_name: rmqnamesrv
     ports:
-    - 9876:9876
+      - 9876:9876
     volumes:
-    - ./data/rocketmq/logs:/home/rocketmq/logs
-    - ./data/rocketmq/store:/home/rocketmq/store
+      - ./data/rocketmq/logs:/home/rocketmq/logs
+      - ./data/rocketmq/store:/home/rocketmq/store
     command: sh mqnamesrv
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
   rmqbroker:
     image: apacherocketmq/rocketmq:4.5.0
     container_name: rmqbroker
     ports:
-    - 10909:10909
-    - 10911:10911
-    - 10912:10912
+      - 10909:10909
+      - 10911:10911
+      - 10912:10912
     volumes:
-    - ./data/rocketmq/logs:/home/rocketmq/logs
-    - ./data/rocketmq/store:/home/rocketmq/store
-    - ./config/rocketmq/broker.conf:/home/rocketmq/rocketmq-4.5.0/conf/broker.conf
+      - ./data/rocketmq/logs:/home/rocketmq/logs
+      - ./data/rocketmq/store:/home/rocketmq/store
+      - ./config/rocketmq/broker.conf:/home/rocketmq/rocketmq-4.5.0/conf/broker.conf
     command: sh mqbroker -n rmqnamesrv:9876 -c ../conf/broker.conf
     depends_on:
-    - rmqnamesrv
+      - rmqnamesrv
     environment:
-    - JAVA_HOME=/usr/lib/jvm/jre
+      - JAVA_HOME=/usr/lib/jvm/jre
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
   elasticsearch:
     image: elasticsearch:7.14.2
     container_name: elasticsearch
     volumes:
-    - ./config/elk/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./config/elk/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     ports:
-    - "9200:9200"
-    - "9300:9300"
+      - "9200:9200"
+      - "9300:9300"
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
       discovery.type: single-node
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
   logstash:
     image: logstash:7.14.2
     container_name: logstash
     volumes:
-    - ./config/elk/logstash.yml:/usr/share/logstash/config/logstash.yml
-    - ./config/elk/pipeline:/usr/share/logstash/pipeline
+      - ./config/elk/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./config/elk/pipeline:/usr/share/logstash/pipeline
     ports:
-    - "5044:5044"
-    - "5000:5000/tcp"
-    - "5000:5000/udp"
-    - "9600:9600"
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
     depends_on:
-    - elasticsearch
+      - elasticsearch
   kibana:
     image: kibana:7.14.2
     container_name: kibana
     volumes:
-    - ./config/elk/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - ./config/elk/kibana.yml:/usr/share/kibana/config/kibana.yml
     ports:
-    - "5601:5601"
+      - "5601:5601"
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
     depends_on:
-    - elasticsearch
+      - elasticsearch
   nacos:
     image: nacos/nacos-server:2.0.3
     container_name: nacos-standalone-mysql
+    #    env_file：用来给容器启动指定环境变量文件，相当于docker run -e参数。
+    #    与environment区别：
+    #
+    #    environment指定变量
+    #    env_file是指定到变量文件，在指定的变量文件中定义具体变量
+    # 单个变量文件
+    #    env_file: 变量文件路径
+    # 多个变量文件
+    #    env_file:
+    #      - 变量文件路径1
+    #      - 变量文件路径2
+    #      - 变量文件路径3
     env_file:
-    - ./config/nacos/nacos-standlone-mysql.env
+      - ./config/nacos/nacos-standlone-mysql.env
     volumes:
-    - ./data/nacos_logs/:/home/nacos/logs
-    - ./config/nacos/custom.properties:/home/nacos/init.d/custom.properties
+      - ./data/nacos_logs/:/home/nacos/logs
+      - ./config/nacos/custom.properties:/home/nacos/init.d/custom.properties
     ports:
-    - 8848:8848
-    - 9848:9848
-    - 9555:9555
+      - 8848:8848
+      - 9848:9848
+      - 9555:9555
+    # depends_on 是 Docker Compose 文件中的一个关键字，用于指定服务之间的依赖关系。具体来说，它定义了一个服务所依赖的其他服务，只有在所依赖的服务已经启动并且处于运行状态时，该服务才会被启动。
     depends_on:
-    - mysql
+      - mysql
     restart: on-failure
     networks:
-    - thoughts-beta-network
+      - thoughts-beta-network
+  sentinel:
+    image: bladex/sentinel-dashboard
+    container_name: sentinel
+    ports:
+      - 8858:8858
+    networks:
+      - thoughts-beta-network
 
 
