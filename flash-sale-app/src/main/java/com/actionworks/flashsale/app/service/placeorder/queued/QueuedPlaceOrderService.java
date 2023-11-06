@@ -92,6 +92,7 @@ public class QueuedPlaceOrderService implements PlaceOrderService {
 
         PlaceOrderTask placeOrderTask = PlaceOrderTaskBuilder.with(userId, placeOrderCommand);
         placeOrderTask.setPlaceOrderTaskId(placeOrderTaskId);
+        //提交到消息队列
         OrderTaskSubmitResult submitResult = placeOrderTaskService.submit(placeOrderTask);
         logger.info("placeOrder|任务提交结果|{},{},{}", userId, placeOrderTaskId, JSON.toJSONString(placeOrderTask));
 
@@ -126,7 +127,10 @@ public class QueuedPlaceOrderService implements PlaceOrderService {
             flashOrderToPlace.setFlashPrice(flashItem.getFlashPrice());
             flashOrderToPlace.setUserId(userId);
             flashOrderToPlace.setId(orderId);
-
+            /**
+             * QueuedPlaceOrderService中的订单处理逻辑。与同步下单处理逻辑类似，下单前都会做必要的秒杀活动和秒杀品的规则校验，以确认是否可以继续下单。
+             * 不同之处则在于，异步下单不存在库存扣减逻辑，由于异步并发可控，将直接在数据库层面进行竞争扣减。任务处理结束后，会将结果写入到缓存中以供查询。
+             */
             StockDeduction stockDeduction = new StockDeduction()
                     .setItemId(placeOrderTask.getItemId())
                     .setQuantity(placeOrderTask.getQuantity());
@@ -139,7 +143,9 @@ public class QueuedPlaceOrderService implements PlaceOrderService {
             if (!placeOrderSuccess) {
                 throw new BizException(PLACE_ORDER_FAILED.getErrDesc());
             }
+            //更新订单结果
             placeOrderTaskService.updateTaskHandleResult(placeOrderTask.getPlaceOrderTaskId(), true);
+            //创建用户订单号缓存
             redisCacheService.put(PLACE_ORDER_TASK_ORDER_ID_KEY + placeOrderTask.getPlaceOrderTaskId(), orderId, HOURS_24);
             logger.info("handleOrderTask|下单任务处理完成|{},{}", placeOrderTask.getPlaceOrderTaskId(), JSON.toJSONString(placeOrderTask));
         } catch (Exception e) {

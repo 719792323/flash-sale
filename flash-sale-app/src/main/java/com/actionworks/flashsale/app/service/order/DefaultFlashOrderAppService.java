@@ -61,13 +61,13 @@ public class DefaultFlashOrderAppService implements FlashOrderAppService {
     private PlaceOrderService placeOrderService;
 
     @Override
-    @Transactional
+    @Transactional//这个回滚标签放的位置不对，应该放在doPlaceOrder里
     public AppSimpleResult<PlaceOrderResult> placeOrder(Long userId, FlashPlaceOrderCommand placeOrderCommand) {
         logger.info("placeOrder|下单|{},{}", userId, JSON.toJSONString(placeOrderCommand));
         if (userId == null || placeOrderCommand == null || !placeOrderCommand.validateParams()) {
             throw new BizException(INVALID_PARAMS);
         }
-        //对一个以用户ID设置的KEY加锁，避免一个用户重复下单
+        //对一个以用户ID设置的分布式锁，避免一个用户重复下单即抖动
         String placeOrderLockKey = getPlaceOrderLockKey(userId);
         DistributedLock placeOrderLock = lockFactoryService.getDistributedLock(placeOrderLockKey);
         try {

@@ -80,21 +80,24 @@ public class QueuedPlaceOrderTaskService implements PlaceOrderTaskService {
         if (taskIdSubmittedResult != null) {
             return OrderTaskSubmitResult.failed(REDUNDANT_SUBMIT);
         }
+        //获取剩余下单许可
         Integer availableOrderTokens = getAvailableOrderTokens(placeOrderTask.getItemId());
         if (availableOrderTokens == null || availableOrderTokens == 0) {
             return OrderTaskSubmitResult.failed(ORDER_TOKENS_NOT_AVAILABLE);
         }
-
+        //扣减下单许可
         if (!takeOrRecoverToken(placeOrderTask, TAKE_ORDER_TOKEN_LUA)) {
             logger.info("submitOrderTask|库存扣减失败|{},{}", placeOrderTask.getUserId(), placeOrderTask.getPlaceOrderTaskId());
             return OrderTaskSubmitResult.failed(ORDER_TOKENS_NOT_AVAILABLE);
         }
         boolean postSuccess = orderTaskPostService.post(placeOrderTask);
         if (!postSuccess) {
+            //恢复下单许可
             takeOrRecoverToken(placeOrderTask, RECOVER_ORDER_TOKEN_LUA);
             logger.info("submitOrderTask|下单任务提交失败|{},{}", placeOrderTask.getUserId(), placeOrderTask.getPlaceOrderTaskId());
             return OrderTaskSubmitResult.failed(ORDER_TASK_SUBMIT_FAILED);
         }
+        //缓存标记已经下单
         redisCacheService.put(taskKey, 0, HOURS_24);
         logger.info("submitOrderTask|下单任务提交成功|{},{}", placeOrderTask.getUserId(), placeOrderTask.getPlaceOrderTaskId());
         return OrderTaskSubmitResult.ok();
