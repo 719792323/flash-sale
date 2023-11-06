@@ -25,8 +25,8 @@ public class FlashSaleApplication1003 {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext run = SpringApplication.run(FlashSaleApplication1003.class, args);
-        PlaceOrderService bean = run.getBean(PlaceOrderService.class);
-        System.out.println(bean);
+//        PlaceOrderService bean = run.getBean(PlaceOrderService.class);
+//        System.out.println(bean);
     }
 
     @Bean

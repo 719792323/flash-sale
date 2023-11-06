@@ -69,15 +69,14 @@ public class FlashActivitiesCacheService {
         }
         //更新本地缓存
         if (distributedFlashActivityCache != null && !distributedFlashActivityCache.isLater()) {
-<<<<<<< HEAD
+
             //本地更新锁
             /*
             一是降低不必要的计算和重复赋值，二是guava底层是线程安全，但它是阻塞设计。在并发系统中，阻塞设计是极其危险的存在，非必要应极力避免。
              */
-            boolean isLockSuccess = localCacleUpdatelock.tryLock();
-=======
+
             boolean isLockSuccess = localCacheUpdateLock.tryLock();
->>>>>>> 2e4e26a500741e2cba2e620bf3375be1394ba351
+
             if (isLockSuccess) {
                 try {
                     flashActivitiesLocalCache.put(pageNumber, distributedFlashActivityCache);
