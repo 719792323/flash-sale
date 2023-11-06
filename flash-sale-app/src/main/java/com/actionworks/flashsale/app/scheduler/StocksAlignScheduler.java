@@ -27,19 +27,19 @@ public class StocksAlignScheduler {
     @Scheduled(cron = "*/2 * * * * ?")
     @BetaTrace
     public void alignStocksTask() {
-        logger.info("alignStocksTask|校准库存缓存开始");
+        logger.debug("alignStocksTask|校准库存缓存开始");
         PagesQueryCondition pagesQueryCondition = new PagesQueryCondition();
         pagesQueryCondition.setStatus(FlashItemStatus.ONLINE.getCode());
         PageResult<FlashItem> pageResult = flashItemDomainService.getFlashItems(pagesQueryCondition);
         pageResult.getData().forEach(flashItem -> {
             boolean result = itemStockCacheService.alignItemStocks(flashItem.getId());
             if (!result) {
-                logger.info("alignStocksTask|库存校准失败", flashItem.getId(), flashItem.getAvailableStock());
+                logger.debug("alignStocksTask|库存校准失败", flashItem.getId(), flashItem.getAvailableStock());
                 return;
             }
-            logger.info("alignStocksTask|库存校准完成", flashItem.getId(), flashItem.getAvailableStock());
+            logger.debug("alignStocksTask|库存校准完成", flashItem.getId(), flashItem.getAvailableStock());
         });
-        logger.info("alignStocksTask|校准库存缓存结束");
+        logger.debug("alignStocksTask|校准库存缓存结束");
     }
 }
 

@@ -37,6 +37,7 @@ public class NormalStockCacheService implements ItemStockCacheService {
     private static final String ITEM_STOCKS_CACHE_KEY = "ITEM_STOCKS_CACHE_KEY";
 
     static {
+        //这个LUA脚本没有设置TTL
         INIT_OR_ALIGN_ITEM_STOCK_LUA = "if (redis.call('exists', KEYS[2]) == 1) then" +
                 "    return -997;" +
                 "end;" +
@@ -115,7 +116,7 @@ public class NormalStockCacheService implements ItemStockCacheService {
                 return true;
             }
             if (result == 1) {
-                logger.info("alignItemStocks|秒杀品库存校准完成|{},{},{},{}", result, itemId, key1ItemStocksCacheKey, flashItem.getInitialStock());
+                logger.debug("alignItemStocks|秒杀品库存校准完成|{},{},{},{}", result, itemId, key1ItemStocksCacheKey, flashItem.getInitialStock());
                 return true;
             }
             return false;

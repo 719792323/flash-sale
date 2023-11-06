@@ -26,7 +26,7 @@ public class FlashItemWarmUpScheduler {
     @Scheduled(cron = "*/5 * * * * ?")
     @BetaTrace
     public void warmUpFlashItemTask() {
-        logger.info("warmUpFlashItemTask|秒杀品预热调度");
+        logger.debug("warmUpFlashItemTask|秒杀品预热调度");
         PagesQueryCondition pagesQueryCondition = new PagesQueryCondition();
         pagesQueryCondition.setStockWarmUp(0);
         //从数据库查询库存商品
@@ -35,12 +35,12 @@ public class FlashItemWarmUpScheduler {
         pageResult.getData().forEach(flashItem -> {
             boolean initSuccess = itemStockCacheService.alignItemStocks(flashItem.getId());
             if (!initSuccess) {
-                logger.info("warmUpFlashItemTask|秒杀品库存已经初始化预热失败", flashItem.getId());
+                logger.debug("warmUpFlashItemTask|秒杀品库存已经初始化预热失败,itemID:{}", flashItem.getId());
                 return;
             }
             flashItem.setStockWarmUp(1);
             flashItemDomainService.publishFlashItem(flashItem);
-            logger.info("warmUpFlashItemTask|秒杀品库存已经初始化预热成功", flashItem.getId());
+            logger.debug("warmUpFlashItemTask|秒杀品库存已经初始化预热成功,itemID:{}", flashItem.getId());
         });
     }
 }

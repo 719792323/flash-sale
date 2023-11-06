@@ -90,7 +90,8 @@ public class DefaultFlashOrderAppService implements FlashOrderAppService {
             return AppSimpleResult.ok(placeOrderResult);
         } catch (Exception e) {
             logger.error("placeOrder|下单失败|{},{}", userId, JSON.toJSONString(placeOrderCommand), e);
-            return AppSimpleResult.failed(PLACE_ORDER_FAILED);
+            throw new BizException(e.getMessage());
+//            return AppSimpleResult.failed(PLACE_ORDER_FAILED);
         } finally {
             placeOrderLock.unlock();
         }

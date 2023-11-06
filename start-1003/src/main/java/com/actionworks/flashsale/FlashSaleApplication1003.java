@@ -1,5 +1,6 @@
 package com.actionworks.flashsale;
 
+import com.actionworks.flashsale.app.service.placeorder.PlaceOrderService;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import org.springframework.boot.actuate.jdbc.DataSourceHealthIndicator;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.jdbc.metadata.DataSourcePoolMetadataProvider;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -22,7 +24,9 @@ import java.util.Map;
 public class FlashSaleApplication1003 {
 
     public static void main(String[] args) {
-        SpringApplication.run(FlashSaleApplication1003.class, args);
+        ConfigurableApplicationContext run = SpringApplication.run(FlashSaleApplication1003.class, args);
+        PlaceOrderService bean = run.getBean(PlaceOrderService.class);
+        System.out.println(bean);
     }
 
     @Bean

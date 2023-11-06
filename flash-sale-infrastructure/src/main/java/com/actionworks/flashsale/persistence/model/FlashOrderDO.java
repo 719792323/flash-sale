@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class FlashOrderDO extends BaseDO {
-    private static final long serialVersionUID = 1L;
+    private long serialVersionUID = 1L;
 
     private Long itemId;
     private String itemTitle;
