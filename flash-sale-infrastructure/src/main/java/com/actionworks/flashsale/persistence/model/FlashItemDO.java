@@ -9,7 +9,7 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class FlashItemDO extends BaseDO {
-    private static final long serialVersionUID = 1L;
+//    private static final long serialVersionUID = 1L;
     private String itemTitle;
     private String itemSubTitle;
     private Integer initialStock;

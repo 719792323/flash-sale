@@ -35,12 +35,12 @@ public class FlashItemWarmUpScheduler {
         pageResult.getData().forEach(flashItem -> {
             boolean initSuccess = itemStockCacheService.alignItemStocks(flashItem.getId());
             if (!initSuccess) {
-                logger.info("warmUpFlashItemTask|秒杀品库存已经初始化预热失败", flashItem.getId());
+                logger.info("warmUpFlashItemTask|秒杀品库存已经初始化预热失败,itemID:{}", flashItem.getId());
                 return;
             }
             flashItem.setStockWarmUp(1);
             flashItemDomainService.publishFlashItem(flashItem);
-            logger.info("warmUpFlashItemTask|秒杀品库存已经初始化预热成功", flashItem.getId());
+            logger.info("warmUpFlashItemTask|秒杀品库存已经初始化预热成功,itemID:{}", flashItem.getId());
         });
     }
 }

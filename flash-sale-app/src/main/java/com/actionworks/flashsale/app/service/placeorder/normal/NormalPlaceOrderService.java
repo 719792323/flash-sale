@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -51,6 +52,7 @@ public class NormalPlaceOrderService implements PlaceOrderService {
     public void init() {
         logger.info("initPlaceOrderService|默认下单服务已经初始化");
     }
+
 
     @Override
     public PlaceOrderResult doPlaceOrder(Long userId, FlashPlaceOrderCommand placeOrderCommand) {

@@ -112,7 +112,7 @@ public class FlashItemDomainServiceImpl implements FlashItemDomainService {
         }
         List<FlashItem> flashItems = flashItemRepository.findFlashItemsByCondition(pagesQueryCondition.buildParams());
         Integer total = flashItemRepository.countFlashItemsByCondition(pagesQueryCondition);
-        logger.info("Get flash items:{}", flashItems.size());
+        logger.debug("Get flash items:{}", flashItems.size());
         return PageResult.with(flashItems, total);
     }
 

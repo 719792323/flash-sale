@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class FlashOrder implements Serializable {
+public class FlashOrder  {
 
     /**
      * 订单ID

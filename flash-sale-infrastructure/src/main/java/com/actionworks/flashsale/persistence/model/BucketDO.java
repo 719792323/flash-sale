@@ -9,7 +9,7 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class BucketDO extends BaseDO {
-    private static final long serialVersionUID = 1L;
+//    private static final long serialVersionUID = 1L;
 
     private Long itemId;
     private Integer totalStocksAmount;

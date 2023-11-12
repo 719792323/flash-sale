@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import static com.actionworks.flashsale.util.StringUtil.link;
 
 @Service
-@Conditional(MultiPlaceOrderTypesCondition.class)
+//@Conditional(MultiPlaceOrderTypesCondition.class)
 public class NormalStockCacheService implements ItemStockCacheService {
     private static final String ITEM_STOCK_ALIGN_LOCK_KEY = "ITEM_STOCK_ALIGN_LOCK_KEY";
     private static final Logger logger = LoggerFactory.getLogger(NormalStockCacheService.class);
@@ -37,6 +37,7 @@ public class NormalStockCacheService implements ItemStockCacheService {
     private static final String ITEM_STOCKS_CACHE_KEY = "ITEM_STOCKS_CACHE_KEY";
 
     static {
+        //这个LUA脚本没有设置TTL
         INIT_OR_ALIGN_ITEM_STOCK_LUA = "if (redis.call('exists', KEYS[2]) == 1) then" +
                 "    return -997;" +
                 "end;" +
@@ -117,7 +118,7 @@ public class NormalStockCacheService implements ItemStockCacheService {
                 return true;
             }
             if (result == 1) {
-                logger.info("alignItemStocks|秒杀品库存校准完成|{},{},{},{}", result, itemId, key1ItemStocksCacheKey, flashItem.getInitialStock());
+                logger.debug("alignItemStocks|秒杀品库存校准完成|{},{},{},{}", result, itemId, key1ItemStocksCacheKey, flashItem.getInitialStock());
                 return true;
             }
             return false;
@@ -216,7 +217,9 @@ public class NormalStockCacheService implements ItemStockCacheService {
         if (itemStockCache != null) {
             return itemStockCache;
         }
-        Integer availableStock = distributedCacheService.getObject(getItemStocksCacheKey(itemId), Integer.class);
+        String result = distributedCacheService.getString(getItemStocksCacheKey(itemId));
+//        Integer availableStock = distributedCacheService.getObject(getItemStocksCacheKey(itemId), Integer.class);
+        Integer availableStock = result == null ? null : Integer.valueOf(result);
         if (availableStock == null) {
             return null;
         }
