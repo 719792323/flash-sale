@@ -55,6 +55,7 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
         if (itemId == null || stocksAmount == null || stocksAmount < 0 || bucketsQuantity == null || bucketsQuantity <= 0) {
             throw new StockBucketException("参数错误");
         }
+        // 分桶前暂停分桶服务，并手动提交事务
         DistributedLock lock = lockFactoryService.getDistributedLock(ITEM_STOCK_BUCKETS_SUSPEND_KEY + itemId);
         try {
             boolean isLockSuccess = lock.tryLock(5, 5, TimeUnit.SECONDS);
@@ -74,15 +75,17 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
                 logger.info("arrangeBuckets|关闭分桶失败回滚中|{}", itemId, e);
                 dataSourceTransactionManager.rollback(transactionStatus);
             }
-
+            // 获取历史分桶数据
             List<Bucket> buckets = bucketsDomainService.getBucketsByItem(itemId);
             if (buckets.size() == 0) {
                 initStockBuckets(itemId, stocksAmount, bucketsQuantity);
                 return;
             }
+            // 全量分桶模式
             if (ArrangementMode.isTotalAmountMode(assignmentMode)) {
                 arrangeStockBucketsBasedTotalMode(itemId, stocksAmount, bucketsQuantity, buckets);
             }
+            // 增量分桶模式
             if (ArrangementMode.isIncrementalAmountMode(assignmentMode)) {
                 rearrangeStockBucketsBasedIncrementalMode(itemId, stocksAmount, bucketsQuantity, buckets);
             }
@@ -98,6 +101,7 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
         }
     }
 
+
     @Override
     public StockBucketSummaryDTO queryStockBucketsSummary(Long itemId) {
         if (itemId == null) {
@@ -109,20 +113,15 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
         if (!primaryBucketOptional.isPresent()) {
             return new StockBucketSummaryDTO();
         }
-        List<StockBucketDTO> subBuckets = buckets.stream()
-                .map(StockBucketBuilder::toStockBucketDTO)
-                .collect(toList());
-        return new StockBucketSummaryDTO()
-                .setTotalStocksAmount(primaryBucketOptional.get().getTotalStocksAmount())
-                .setAvailableStocksAmount(remainAvailableStocks)
-                .setBuckets(subBuckets);
+        List<StockBucketDTO> subBuckets = buckets.stream().map(StockBucketBuilder::toStockBucketDTO).collect(toList());
+        return new StockBucketSummaryDTO().setTotalStocksAmount(primaryBucketOptional.get().getTotalStocksAmount()).setAvailableStocksAmount(remainAvailableStocks).setBuckets(subBuckets);
     }
 
+    /**
+     * 不存在历史分桶时，初始化分桶并提交
+     */
     private void initStockBuckets(Long itemId, Integer totalStockAmount, Integer bucketsQuantity) {
-        Bucket primaryBucket = new Bucket()
-                .initPrimary()
-                .setTotalStocksAmount(totalStockAmount)
-                .setItemId(itemId);
+        Bucket primaryBucket = new Bucket().initPrimary().setTotalStocksAmount(totalStockAmount).setItemId(itemId);
         List<Bucket> presentBuckets = buildBuckets(itemId, totalStockAmount, bucketsQuantity, primaryBucket);
         submitBucketsToArrange(itemId, presentBuckets);
     }
@@ -132,9 +131,7 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
      */
     private void arrangeStockBucketsBasedTotalMode(Long itemId, Integer totalStockAmount, Integer bucketsAmount, List<Bucket> existingBuckets) {
         // 重新分桶
-        int remainAvailableStocks = existingBuckets.stream()
-                .filter(Bucket::isSubBucket)
-                .mapToInt(Bucket::getAvailableStocksAmount).sum();
+        int remainAvailableStocks = existingBuckets.stream().filter(Bucket::isSubBucket).mapToInt(Bucket::getAvailableStocksAmount).sum();
         Optional<Bucket> primaryBucketOptional = existingBuckets.stream().filter(Bucket::isPrimaryBucket).findFirst();
         if (!primaryBucketOptional.isPresent()) {
             return;
@@ -175,6 +172,9 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
         submitBucketsToArrange(itemId, presentBuckets);
     }
 
+    /**
+     * 提交分桶数据到领域层进行编排
+     */
     private void submitBucketsToArrange(Long itemId, List<Bucket> presentBuckets) {
         boolean result = bucketsDomainService.arrangeBuckets(itemId, presentBuckets);
         if (result) {
@@ -185,6 +185,9 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
         }
     }
 
+    /**
+     * 根据秒杀品、可用库存和分桶数量构建分桶集合
+     */
     private List<Bucket> buildBuckets(Long itemId, Integer availableStocksAmount, Integer bucketsQuantity, Bucket primaryBucket) {
         if (itemId == null || availableStocksAmount == null || bucketsQuantity == null || bucketsQuantity <= 0) {
             throw new StockBucketException("构建分桶时参数错误");
@@ -203,10 +206,7 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
                 buckets.add(primaryBucket);
                 continue;
             }
-            Bucket subBucket = new Bucket()
-                    .setStatus(BucketStatus.ENABLED.getCode())
-                    .setSerialNo(i)
-                    .setItemId(itemId);
+            Bucket subBucket = new Bucket().setStatus(BucketStatus.ENABLED.getCode()).setSerialNo(i).setItemId(itemId);
             if (i < bucketsQuantity - 1) {
                 subBucket.setTotalStocksAmount(averageStocksInEachBucket);
                 subBucket.setAvailableStocksAmount(averageStocksInEachBucket);

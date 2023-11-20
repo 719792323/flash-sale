@@ -14,6 +14,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ import static com.actionworks.flashsale.util.StringUtil.link;
 
 @Service
 //@Conditional(MultiPlaceOrderTypesCondition.class)
+@ConditionalOnProperty(name = "place_order_type", havingValue = "normal", matchIfMissing = true)
 public class NormalStockCacheService implements ItemStockCacheService {
     private static final String ITEM_STOCK_ALIGN_LOCK_KEY = "ITEM_STOCK_ALIGN_LOCK_KEY";
     private static final Logger logger = LoggerFactory.getLogger(NormalStockCacheService.class);
