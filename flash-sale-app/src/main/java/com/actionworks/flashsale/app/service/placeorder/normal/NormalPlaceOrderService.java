@@ -19,6 +19,7 @@ import com.actionworks.flashsale.domain.service.StockDeductionDomainService;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,8 @@ import static com.actionworks.flashsale.app.exception.AppErrorCode.PLACE_ORDER_F
 import static com.actionworks.flashsale.app.model.builder.FlashOrderAppBuilder.toDomain;
 
 @Service
-@Conditional(MultiPlaceOrderTypesCondition.class)
+//@Conditional(MultiPlaceOrderTypesCondition.class)
+@ConditionalOnProperty(name = "place_order_type", havingValue = "normal", matchIfMissing = true)
 public class NormalPlaceOrderService implements PlaceOrderService {
     private static final Logger logger = LoggerFactory.getLogger(NormalPlaceOrderService.class);
     @Resource

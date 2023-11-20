@@ -32,7 +32,7 @@ import static com.actionworks.flashsale.app.service.placeorder.normal.cache.Norm
 import static com.actionworks.flashsale.util.StringUtil.link;
 
 @Service
-@ConditionalOnProperty(name = "place_order_type", havingValue = "buckets", matchIfMissing = true)
+@ConditionalOnProperty(name = "item_cache_type", havingValue = "buckets", matchIfMissing = true)
 public class BucketsCacheService implements ItemStockCacheService {
 
     private static final Logger logger = LoggerFactory.getLogger(BucketsCacheService.class);
@@ -171,6 +171,7 @@ public class BucketsCacheService implements ItemStockCacheService {
             if (subBucketsQuantity == null) {
                 return false;
             }
+            //取模获取分桶号
             Integer targetBucketSerialNo = getTargetBucketSerialNo(stockDeduction.getUserId(), subBucketsQuantity);
             stockDeduction.setSerialNo(targetBucketSerialNo);
 

@@ -27,8 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static com.actionworks.flashsale.util.StringUtil.link;
 
 @Service
-//@Conditional(MultiPlaceOrderTypesCondition.class)
-@ConditionalOnProperty(name = "place_order_type", havingValue = "normal", matchIfMissing = true)
+@ConditionalOnProperty(name = "item_cache_type", havingValue = "normal", matchIfMissing = true)
 public class NormalStockCacheService implements ItemStockCacheService {
     private static final String ITEM_STOCK_ALIGN_LOCK_KEY = "ITEM_STOCK_ALIGN_LOCK_KEY";
     private static final Logger logger = LoggerFactory.getLogger(NormalStockCacheService.class);
