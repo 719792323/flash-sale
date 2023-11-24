@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 import static com.actionworks.flashsale.domain.exception.DomainErrorCode.PARAMS_INVALID;
 
 @Service
-//@ConditionalOnProperty(name = "place_order_type", havingValue = "normal", matchIfMissing = true)
+@ConditionalOnProperty(name = "StockDeductionDomainService", havingValue = "normal", matchIfMissing = true)
 public class NormalStockDeductionDomainService implements StockDeductionDomainService {
     @Resource
     private FlashItemRepository flashItemRepository;

@@ -33,8 +33,7 @@ import static com.actionworks.flashsale.app.exception.AppErrorCode.PLACE_ORDER_F
 import static com.actionworks.flashsale.app.model.builder.FlashOrderAppBuilder.toDomain;
 
 @Service
-//@Conditional(MultiPlaceOrderTypesCondition.class)
-@ConditionalOnProperty(name = "place_order_type", havingValue = "normal", matchIfMissing = true)
+@ConditionalOnProperty(name = "PlaceOrderService", havingValue = "normal", matchIfMissing = true)
 public class NormalPlaceOrderService implements PlaceOrderService {
     private static final Logger logger = LoggerFactory.getLogger(NormalPlaceOrderService.class);
     @Resource

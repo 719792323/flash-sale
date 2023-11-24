@@ -31,7 +31,8 @@ import static com.actionworks.flashsale.app.exception.AppErrorCode.REDUNDANT_SUB
 import static com.actionworks.flashsale.app.model.constants.CacheConstants.HOURS_24;
 
 @Service
-@ConditionalOnProperty(name = "place_order_type", havingValue = "queued")
+//@ConditionalOnProperty(name = "place_order_type", havingValue = "queued")
+@ConditionalOnProperty(name = "ServiceType", havingValue = "queued")
 public class QueuedPlaceOrderTaskService implements PlaceOrderTaskService {
     private static final String LOCK_REFRESH_LATEST_AVAILABLE_TOKENS_KEY = "LOCK_REFRESH_LATEST_AVAILABLE_TOKENS_KEY_";
     private static final Logger logger = LoggerFactory.getLogger(QueuedPlaceOrderTaskService.class);

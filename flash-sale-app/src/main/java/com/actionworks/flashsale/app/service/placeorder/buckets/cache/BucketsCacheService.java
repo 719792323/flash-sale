@@ -32,7 +32,7 @@ import static com.actionworks.flashsale.app.service.placeorder.normal.cache.Norm
 import static com.actionworks.flashsale.util.StringUtil.link;
 
 @Service
-@ConditionalOnProperty(name = "item_cache_type", havingValue = "buckets", matchIfMissing = true)
+@ConditionalOnProperty(name = "ItemStockCacheService", havingValue = "buckets", matchIfMissing = true)
 public class BucketsCacheService implements ItemStockCacheService {
 
     private static final Logger logger = LoggerFactory.getLogger(BucketsCacheService.class);

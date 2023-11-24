@@ -26,7 +26,8 @@ import static com.actionworks.flashsale.app.exception.AppErrorCode.QUERY_STOCK_B
 import static com.actionworks.flashsale.util.StringUtil.link;
 
 @Service
-@ConditionalOnProperty(name = "place_order_type", havingValue = "buckets", matchIfMissing = true)
+//@ConditionalOnProperty(name = "place_order_type", havingValue = "buckets", matchIfMissing = true)
+@ConditionalOnProperty(name = "ServiceType", havingValue = "buckets")
 public class DefaultBucketsAPPService implements BucketsAPPService {
     private static final Logger logger = LoggerFactory.getLogger(DefaultBucketsAPPService.class);
     private static final String STOCK_BUCKET_ARRANGEMENT_KEY = "STOCK_BUCKET_ARRANGEMENT_KEY";

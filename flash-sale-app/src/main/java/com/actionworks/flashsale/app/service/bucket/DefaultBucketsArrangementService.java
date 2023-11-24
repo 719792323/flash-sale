@@ -33,7 +33,8 @@ import static com.actionworks.flashsale.util.StringUtil.link;
 import static java.util.stream.Collectors.toList;
 
 @Service
-@ConditionalOnProperty(name = "place_order_type", havingValue = "buckets", matchIfMissing = true)
+//@ConditionalOnProperty(name = "place_order_type", havingValue = "buckets", matchIfMissing = true)
+@ConditionalOnProperty(name = "ServiceType", havingValue = "buckets")
 public class DefaultBucketsArrangementService implements BucketsArrangementService {
     private static final Logger logger = LoggerFactory.getLogger(DefaultBucketsArrangementService.class);
 
@@ -65,6 +66,7 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
             }
             TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
             try {
+                //将各分库中的bucket表中itemId对应的数据status修改为0
                 boolean success = bucketsDomainService.suspendBuckets(itemId);
                 if (!success) {
                     logger.info("arrangeBuckets|关闭库存分桶失败|{}", itemId);
@@ -75,9 +77,9 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
                 logger.info("arrangeBuckets|关闭分桶失败回滚中|{}", itemId, e);
                 dataSourceTransactionManager.rollback(transactionStatus);
             }
-            // 获取历史分桶数据
+            // 获取历史分桶数据，获取各分库中的bucket表itemId对应的数据
             List<Bucket> buckets = bucketsDomainService.getBucketsByItem(itemId);
-            if (buckets.size() == 0) {
+            if (buckets.size() == 0) {//分库表中没有数据，初始化
                 initStockBuckets(itemId, stocksAmount, bucketsQuantity);
                 return;
             }
@@ -176,6 +178,7 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
      * 提交分桶数据到领域层进行编排
      */
     private void submitBucketsToArrange(Long itemId, List<Bucket> presentBuckets) {
+        //存入数据库
         boolean result = bucketsDomainService.arrangeBuckets(itemId, presentBuckets);
         if (result) {
             presentBuckets.forEach(bucket -> distributedCacheService.put(getBucketAvailableStocksCacheKey(itemId, bucket.getSerialNo()), bucket.getAvailableStocksAmount()));

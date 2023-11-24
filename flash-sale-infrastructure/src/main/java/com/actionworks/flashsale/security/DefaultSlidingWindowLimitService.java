@@ -12,6 +12,7 @@ public class DefaultSlidingWindowLimitService implements SlidingWindowLimitServi
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
+    //https://zhuanlan.zhihu.com/p/629389490 redis zset使用
     @Override
     public boolean pass(String userActionKey, int windowPeriod, int windowSize) {
         long current = System.currentTimeMillis();

@@ -14,7 +14,7 @@ import javax.annotation.Resource;
 
 import static com.actionworks.flashsale.domain.exception.DomainErrorCode.PARAMS_INVALID;
 
-@ConditionalOnProperty(name = "place_order_type", havingValue = "buckets", matchIfMissing = true)
+@ConditionalOnProperty(name = "StockDeductionDomainService", havingValue = "buckets", matchIfMissing = true)
 @Service
 public class BucketsStockDeductionService implements StockDeductionDomainService {
     private static final Logger logger = LoggerFactory.getLogger(BucketsStockDeductionService.class);

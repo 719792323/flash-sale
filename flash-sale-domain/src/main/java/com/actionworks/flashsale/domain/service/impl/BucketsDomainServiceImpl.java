@@ -27,7 +27,8 @@ import static com.actionworks.flashsale.domain.exception.DomainErrorCode.STOCK_B
 import static com.actionworks.flashsale.domain.exception.DomainErrorCode.TOTAL_STOCKS_AMOUNT_INVALID;
 
 @Service
-@ConditionalOnProperty(name = "place_order_type", havingValue = "buckets", matchIfMissing = true)
+//@ConditionalOnProperty(name = "place_order_type", havingValue = "buckets", matchIfMissing = true)
+@ConditionalOnProperty(name = "ServiceType", havingValue = "buckets")
 public class BucketsDomainServiceImpl implements BucketsDomainService {
     private static final Logger logger = LoggerFactory.getLogger(BucketsDomainServiceImpl.class);
 
@@ -90,6 +91,7 @@ public class BucketsDomainServiceImpl implements BucketsDomainService {
                 throw new DomainException(STOCK_BUCKET_ITEM_INVALID);
             }
         });
+        //提交到数据库
         boolean success = bucketsRepository.submitBuckets(itemId, buckets);
         if (!success) {
             return false;

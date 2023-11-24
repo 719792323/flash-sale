@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Component
-@ConditionalOnProperty(name = "place_order_type", havingValue = "queued")
+//@ConditionalOnProperty(name = "place_order_type", havingValue = "queued")
+@ConditionalOnProperty(name = "ServiceType", havingValue = "queued")
 public class RocketMQOrderTaskPostService implements OrderTaskPostService {
     private static final Logger logger = LoggerFactory.getLogger(RocketMQOrderTaskPostService.class);
 

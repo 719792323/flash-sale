@@ -44,6 +44,7 @@ public class FlashOrderDomainServiceImpl implements FlashOrderDomainService {
             //发布创建成功消息
             FlashOrderEvent flashOrderEvent = new FlashOrderEvent();
             flashOrderEvent.setEventType(FlashOrderEventType.CREATED);
+            flashOrderEvent.setOrderId(1L);
             domainEventPublisher.publish(flashOrderEvent);
         }
         logger.info("placeOrder|订单已创建成功|{},{}", userId, JSON.toJSONString(flashOrder));

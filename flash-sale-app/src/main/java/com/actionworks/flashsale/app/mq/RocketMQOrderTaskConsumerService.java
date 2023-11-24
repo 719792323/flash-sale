@@ -15,7 +15,8 @@ import javax.annotation.Resource;
 
 @Component
 @RocketMQMessageListener(topic = "PLACE_ORDER_TASK_TOPIC", consumerGroup = "PLACE_ORDER_TASK_TOPIC_CONSUMER_GROUP")
-@ConditionalOnProperty(name = "place_order_type", havingValue = "queued")
+//@ConditionalOnProperty(name = "place_order_type", havingValue = "queued")
+@ConditionalOnProperty(name = "ServiceType", havingValue = "queued")
 public class RocketMQOrderTaskConsumerService implements RocketMQListener<String> {
     private static final Logger logger = LoggerFactory.getLogger(RocketMQOrderTaskConsumerService.class);
 
