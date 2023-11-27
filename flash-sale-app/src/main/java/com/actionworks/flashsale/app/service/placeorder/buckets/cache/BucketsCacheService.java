@@ -112,7 +112,7 @@ public class BucketsCacheService implements ItemStockCacheService {
     @Override
     public boolean alignItemStocks(Long itemId) {
         if (itemId == null) {
-            logger.info("alignItemStocks|参数为空");
+//            logger.info("alignItemStocks|参数为空");
             return false;
         }
         String stockBucketCacheInitLockKey = getStockBucketCacheInitLockKey(itemId);
@@ -120,12 +120,12 @@ public class BucketsCacheService implements ItemStockCacheService {
         try {
             boolean isLockSuccess = lock.tryLock(5, 5, TimeUnit.SECONDS);
             if (!isLockSuccess) {
-                logger.info("alignItemStocks|校准库存时获取锁失败|{}", itemId);
+//                logger.info("alignItemStocks|校准库存时获取锁失败|{}", itemId);
                 return false;
             }
             List<Bucket> buckets = bucketsDomainService.getBucketsByItem(itemId);
             if (CollectionUtils.isEmpty(buckets)) {
-                logger.info("alignItemStocks|秒杀品未设置库存|{}", itemId);
+//                logger.info("alignItemStocks|秒杀品未设置库存|{}", itemId);
                 return false;
             }
             buckets.forEach(stockBucket -> {
@@ -137,22 +137,22 @@ public class BucketsCacheService implements ItemStockCacheService {
                 DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>(INIT_OR_ALIGN_ITEM_STOCK_LUA, Long.class);
                 Long result = redisCacheService.getRedisTemplate().execute(redisScript, keys, stockBucket.getAvailableStocksAmount(), buckets.size());
                 if (result == null) {
-                    logger.info("alignItemStocks|分桶库存校准失败|{},{}", itemId, stockBucketCacheInitLockKey);
+//                    logger.info("alignItemStocks|分桶库存校准失败|{},{}", itemId, stockBucketCacheInitLockKey);
                     return;
                 }
                 if (result == -998) {
-                    logger.info("alignItemStocks|库存维护中，已暂停服务|{},{},{}", result, itemId, stockBucketCacheInitLockKey);
+//                    logger.info("alignItemStocks|库存维护中，已暂停服务|{},{},{}", result, itemId, stockBucketCacheInitLockKey);
                     return;
                 }
                 if (result == -997) {
-                    logger.info("alignItemStocks|库存数据校准对齐中|{},{},{}", result, itemId, stockBucketCacheInitLockKey);
+//                    logger.info("alignItemStocks|库存数据校准对齐中|{},{},{}", result, itemId, stockBucketCacheInitLockKey);
                     return;
                 }
                 if (result == 1) {
-                    logger.info("alignItemStocks|分桶库存校准完成|{},{},{}", result, itemId, stockBucketCacheInitLockKey);
+//                    logger.info("alignItemStocks|分桶库存校准完成|{},{},{}", result, itemId, stockBucketCacheInitLockKey);
                 }
             });
-            logger.info("alignItemStocks|分桶库存校准全部完成|{},{}", itemId, stockBucketCacheInitLockKey);
+//            logger.info("alignItemStocks|分桶库存校准全部完成|{},{}", itemId, stockBucketCacheInitLockKey);
             return true;
         } catch (Exception e) {
             logger.error("alignItemStocks|秒杀品库存初始化错误|{},{}", itemId, stockBucketCacheInitLockKey, e);
@@ -184,26 +184,26 @@ public class BucketsCacheService implements ItemStockCacheService {
             DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>(DECREASE_ITEM_STOCK_LUA, Long.class);
             Long result = redisCacheService.getRedisTemplate().execute(redisScript, keys, stockDeduction.getQuantity());
             if (result == null || result == -996) {
-                logger.info("decreaseItemStock|分桶库存不存在|{},{}", targetBucketSerialNo, key1StockBucketCacheKey);
+//                logger.info("decreaseItemStock|分桶库存不存在|{},{}", targetBucketSerialNo, key1StockBucketCacheKey);
                 return false;
             }
             if (result == -998) {
-                logger.info("decreaseItemStock|库存维护中，已暂停服务|{},{}", result, key1StockBucketCacheKey);
+//                logger.info("decreaseItemStock|库存维护中，已暂停服务|{},{}", result, key1StockBucketCacheKey);
                 return false;
             }
             if (result == -997) {
-                logger.info("decreaseItemStock|库存数据校准对齐中|{},{}", result, key1StockBucketCacheKey);
+//                logger.info("decreaseItemStock|库存数据校准对齐中|{},{}", result, key1StockBucketCacheKey);
                 return false;
             }
             if (result == -1) {
-                logger.info("decreaseItemStock|库存不足|{},{}", result, key1StockBucketCacheKey);
+//                logger.info("decreaseItemStock|库存不足|{},{}", result, key1StockBucketCacheKey);
                 return false;
             }
             if (result == 1) {
-                logger.info("decreaseItemStock|库存扣减成功|{},{}", result, key1StockBucketCacheKey);
+//                logger.info("decreaseItemStock|库存扣减成功|{},{}", result, key1StockBucketCacheKey);
                 return true;
             }
-            logger.info("decreaseItemStock|库存扣减失败|{},{}", result, key1StockBucketCacheKey);
+//            logger.info("decreaseItemStock|库存扣减失败|{},{}", result, key1StockBucketCacheKey);
             return false;
         } catch (Exception e) {
             logger.error("decreaseItemStock|库存扣减失败", e);
@@ -213,7 +213,7 @@ public class BucketsCacheService implements ItemStockCacheService {
 
     @Override
     public boolean increaseItemStock(StockDeduction stockDeduction) {
-        logger.info("increaseItemStock|恢复预扣减库存|{}", JSON.toJSONString(stockDeduction));
+//        logger.info("increaseItemStock|恢复预扣减库存|{}", JSON.toJSONString(stockDeduction));
         if (stockDeduction == null || !stockDeduction.validate()) {
             return false;
         }
@@ -232,19 +232,19 @@ public class BucketsCacheService implements ItemStockCacheService {
             DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>(INCREASE_ITEM_STOCK_LUA, Long.class);
             Long result = redisCacheService.getRedisTemplate().execute(redisScript, keys, stockDeduction.getQuantity());
             if (result == null || result == -996) {
-                logger.info("increaseItemStock|分桶库存不存在|{},{},{}", stockDeduction.getItemId(), targetBucketSerialNo, key1StockBucketCacheKey);
+//                logger.info("increaseItemStock|分桶库存不存在|{},{},{}", stockDeduction.getItemId(), targetBucketSerialNo, key1StockBucketCacheKey);
                 return false;
             }
             if (result == -998) {
-                logger.info("increaseItemStock|库存维护中，已暂停服务|{},{},{}", result, stockDeduction.getItemId(), key1StockBucketCacheKey);
+//                logger.info("increaseItemStock|库存维护中，已暂停服务|{},{},{}", result, stockDeduction.getItemId(), key1StockBucketCacheKey);
                 return false;
             }
             if (result == -997) {
-                logger.info("increaseItemStock|库存数据校准对齐中|{},{}", result, key1StockBucketCacheKey);
+//                logger.info("increaseItemStock|库存数据校准对齐中|{},{}", result, key1StockBucketCacheKey);
                 return false;
             }
             if (result == 1) {
-                logger.info("increaseItemStock|库存恢复成功|{},{}", result, key1StockBucketCacheKey);
+//                logger.info("increaseItemStock|库存恢复成功|{},{}", result, key1StockBucketCacheKey);
                 return true;
             }
             return false;
@@ -284,7 +284,7 @@ public class BucketsCacheService implements ItemStockCacheService {
         if (subBucketsQuantity != null) {
             return subBucketsQuantity;
         }
-        subBucketsQuantity = distributedCacheService.getObject(getItemStockBucketsQuantityCacheKey(itemId), Integer.class);
+        subBucketsQuantity = Integer.valueOf(distributedCacheService.getString(getItemStockBucketsQuantityCacheKey(itemId)));
         if (subBucketsQuantity != null) {
             itemBucketsQuantityLocalCache.put(itemId, subBucketsQuantity);
         }

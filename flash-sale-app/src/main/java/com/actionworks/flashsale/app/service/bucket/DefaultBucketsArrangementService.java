@@ -181,6 +181,7 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
         //存入数据库
         boolean result = bucketsDomainService.arrangeBuckets(itemId, presentBuckets);
         if (result) {
+            // 存入缓存，缓存的key设置由itemId，和分桶序号决定
             presentBuckets.forEach(bucket -> distributedCacheService.put(getBucketAvailableStocksCacheKey(itemId, bucket.getSerialNo()), bucket.getAvailableStocksAmount()));
             distributedCacheService.put(getItemStockBucketsQuantityCacheKey(itemId), presentBuckets.size());
         } else {
@@ -214,7 +215,7 @@ public class DefaultBucketsArrangementService implements BucketsArrangementServi
                 subBucket.setTotalStocksAmount(averageStocksInEachBucket);
                 subBucket.setAvailableStocksAmount(averageStocksInEachBucket);
             }
-            // // 除最后一个桶之外，其他桶的库存为平均库存数，最后一个桶的库存要把未平均的零头放进去
+            // 除最后一个桶之外，其他桶的库存为平均库存数，最后一个桶的库存要把未平均的零头放进去
             if (i == bucketsQuantity - 1) {
                 Integer restAvailableStocksAmount = averageStocksInEachBucket + pieceStocks;
                 subBucket.setTotalStocksAmount(restAvailableStocksAmount);

@@ -28,7 +28,7 @@ public class RedissonLockService implements DistributedLockFactoryService {
             @Override
             public boolean tryLock(long waitTime, long leaseTime, TimeUnit unit) throws InterruptedException {
                 boolean isLockSuccess = rLock.tryLock(waitTime, leaseTime, unit);
-                logger.info("{} get lock result:{}", key, isLockSuccess);
+//                logger.info("{} get lock result:{}", key, isLockSuccess);
                 return isLockSuccess;
             }
 
